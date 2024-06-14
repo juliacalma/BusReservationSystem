@@ -5,20 +5,29 @@ import java.util.List;
 import java.util.Scanner;
 
 /**
-*This class is in charge of controlling the system, handling user interactions, and coordinating operations involving seats, 
-*reservations, and passengers. 
-*/
+ * This class is in charge of controlling the system, handling user interactions, and coordinating operations involving seats,
+ * reservations, and passengers.
+ */
 public class ReservationSystem {
     private Bus bus;
     private List<Reservation> reservations;
     private Scanner scanner;
     private Validator validator;
+    private DBManager dbManager;
 
     public ReservationSystem(int numRows) {
         bus = new Bus(numRows);
-        reservations = ReservationFileHandler.loadReservations();
+        dbManager = new DBManager();
+        reservations = dbManager.loadReservations();
         scanner = new Scanner(System.in);
         validator = new Validator();
+        initializeBusSeats();
+    }
+
+    private void initializeBusSeats() {
+        for (Reservation reservation : reservations) {
+            bus.reserveSeatForPassenger(reservation.getPassenger(), reservation.getSeatNo());
+        }
     }
 
     public void displayAvailableSeats() {
@@ -69,19 +78,16 @@ public class ReservationSystem {
                 }
 
                 String seatNo = row + String.valueOf(column);
-                if (isSeatReserved(seatNo)) {
+
+                if (bus.isSeatReserved(seatNo)) {
                     System.out.println("Seat " + seatNo + " is already reserved.");
                 } else {
-                    Seat seat = bus.findSeat(row, column);
-                    if (seat != null) {
-                        seat.reserve(passenger);
-                        Reservation newReservation = new Reservation(passenger, seatNo);
-                        reservations.add(newReservation);
-                        saveReservations();
-                        System.out.println("Seat " + seatNo + " reserved successfully.");
-                    } else {
-                        System.out.println("Invalid seat selection. Seat may not exist.");
-                    }
+                    bus.reserveSeatForPassenger(passenger, seatNo);
+                    Reservation newReservation = new Reservation(passenger, seatNo);
+                    reservations.add(newReservation);
+                    dbManager.saveReservation(passenger, seatNo); // Save reservation to database
+
+                    System.out.println("Seat " + seatNo + " reserved successfully.");
                 }
 
                 while (true) {
@@ -116,16 +122,11 @@ public class ReservationSystem {
             char column = Character.toUpperCase(input.charAt(input.length() - 1));
             String seatNo = row + String.valueOf(column);
 
-            if (isSeatReserved(seatNo)) {
-                Seat seat = bus.findSeat(row, column);
-                if (seat != null && seat.isReserved()) {
-                    seat.cancelReservation();
-                    reservations.removeIf(reservation -> reservation.getSeatNo().equals(seatNo));
-                    saveReservations();
-                    System.out.println("The reservation for seat " + seatNo + " has been successfully canceled.");
-                } else {
-                    System.out.println("Failed to cancel reservation. Seat " + seatNo + " may not be reserved.");
-                }
+            if (bus.isSeatReserved(seatNo)) {
+                bus.cancelReservation(seatNo);
+                reservations.removeIf(reservation -> reservation.getSeatNo().equals(seatNo));
+                dbManager.deleteReservation(seatNo); // Delete reservation from database
+                System.out.println("The reservation for seat " + seatNo + " has been successfully canceled.");
             } else {
                 System.out.println("Seat " + seatNo + " is not currently reserved.");
             }
@@ -141,10 +142,6 @@ public class ReservationSystem {
             }
         }
         return false;
-    }
-
-    public void saveReservations() {
-        ReservationFileHandler.saveReservations(reservations);
     }
 
     public void exit() {

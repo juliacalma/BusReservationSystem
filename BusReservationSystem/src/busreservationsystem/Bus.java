@@ -4,10 +4,6 @@
  */
 package busreservationsystem;
 
-/**
- *
- * @author juliacalma
- */
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,56 +14,68 @@ import java.util.List;
  */
 public class Bus implements Serializable {
     private List<Seat> seats;
-    
-    //Constructor to initialise Bus w/ number of rows
+
+    // Constructor to initialize Bus with number of rows
     public Bus(int numRows) {
         seats = new ArrayList<>();
         char[] columns = {'A', 'B', 'C', 'D'};
 
-        // Initialise seats for each row and column
+        // Initialize seats for each row and column
         for (int row = 1; row <= numRows; row++) {
             for (char column : columns) {
                 seats.add(new Seat(row, column));
             }
         }
+    }
 
-        // Load reservations from file if available
-        List<Reservation> reservations = ReservationFileHandler.loadReservations();
-        if (reservations != null) {
-            //Apply existing reservations to corresponding seats 
-            for (Reservation reservation : reservations) {
-                String seatNo = reservation.getSeatNo();
-                Seat seat = findSeatByNo(seatNo);
-                if (seat != null) {
-                    seat.reserve(reservation.getPassenger());
-                }
-            }
-        }
-    }
-    
-    //Method to get all seats on the bus
+    // Method to get all seats on the bus
     public List<Seat> getSeats() {
-        return seats; //returns list of seats in the bus
+        return seats;
     }
-    
-    //Find seat by row & column
+
+    // Find seat by row & column
     public Seat findSeat(int row, char column) {
         for (Seat seat : seats) {
             if (seat.getRow() == row && seat.getColumn() == Character.toUpperCase(column)) {
-                return seat; //return seat object if found
+                return seat; // return seat object if found
             }
         }
-        return null;  //return seat if not found
+        return null; // return null if seat is not found
     }
-    
-    //Find a seat by its seat number
-    public Seat findSeatByNo(String seatNo) // seat No: seat number as a string (e.g. '7A')
-    {
+
+    // Find a seat by its seat number
+    public Seat findSeatByNo(String seatNo) {
         for (Seat seat : seats) {
             if (seat.toString().equals(seatNo)) {
-                return seat; //return seat object if found
+                return seat; // return seat object if found
             }
         }
-        return null;  //return seat if not found
+        return null; // return null if seat is not found
+    }
+
+    // Reserve a seat for a passenger
+    public void reserveSeatForPassenger(Passenger passenger, String seatNo) {
+        Seat seat = findSeatByNo(seatNo);
+        if (seat != null && !seat.isReserved()) {
+            seat.reserve(passenger);
+        } else {
+            throw new IllegalStateException("Seat is either already reserved or does not exist.");
+        }
+    }
+
+    // Check if a seat is reserved
+    public boolean isSeatReserved(String seatNo) {
+        Seat seat = findSeatByNo(seatNo);
+        return seat != null && seat.isReserved();
+    }
+
+    // Cancel a reservation
+    public void cancelReservation(String seatNo) {
+        Seat seat = findSeatByNo(seatNo);
+        if (seat != null && seat.isReserved()) {
+            seat.cancelReservation();
+        } else {
+            throw new IllegalStateException("Seat is either not reserved or does not exist.");
+        }
     }
 }

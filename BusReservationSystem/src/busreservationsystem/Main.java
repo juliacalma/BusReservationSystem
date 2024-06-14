@@ -39,13 +39,14 @@ public class Main {
                     reservationSystem.cancelReservation(); //Cancel a reservation
                     break;
                 case 4:
-                    reservationSystem.saveReservations(); //Save reservations and exit
-                    System.exit(0);
+                    exitReservationSystem(); // Exit the system
+                    return;
                 default:
                     System.out.println("Invalid Choice");
             }
         }
     }
+    
     
     //Method to initialise the reservation system
     private static void initialiseReservationSystem() {
@@ -73,6 +74,12 @@ public class Main {
             }
         }
     }
+    
+        // Method to exit the reservation system gracefully
+    private static void exitReservationSystem() {
+        reservationSystem.exit();
+    }
+    
     
     
 }
