@@ -1,6 +1,6 @@
 ----------------------------------------------------------------
-Fri Jun 14 19:39:26 NZST 2024:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance a816c00e-0190-15af-e2a5-00000f7783f0 
+Fri Jun 14 21:05:27 NZST 2024:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance a816c00e-0190-15fe-a150-00000f7783f0 
 on database directory /Users/juliacalma/NetBeansProjects/BusReservationSystem/BusReservationSystem/BusReservationSystem/BusReservationSystem/bus_reservation with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@277050dc 
 Loaded from file:/Users/juliacalma/NetBeansProjects/MyFirstProject/PDC_Tutorials/lib/derby.jar
 java.vendor=Oracle Corporation
@@ -10,4 +10,11 @@ os.name=Mac OS X
 os.arch=aarch64
 os.version=13.0
 derby.system.home=null
+Incomplete log record detected in file /Users/juliacalma/NetBeansProjects/BusReservationSystem/BusReservationSystem/BusReservationSystem/BusReservationSystem/bus_reservation/log/log1.dat clearing log file from position 63,920 to eof at 1,048,576.
 Database Class Loader started - derby.database.classpath=''
+----------------------------------------------------------------
+Fri Jun 14 21:05:34 NZST 2024: Shutting down Derby engine
+----------------------------------------------------------------
+Fri Jun 14 21:05:34 NZST 2024:
+Shutting down instance a816c00e-0190-15fe-a150-00000f7783f0 on database directory /Users/juliacalma/NetBeansProjects/BusReservationSystem/BusReservationSystem/BusReservationSystem/BusReservationSystem/bus_reservation with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@277050dc 
+----------------------------------------------------------------

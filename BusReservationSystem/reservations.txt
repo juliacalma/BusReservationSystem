@@ -1,5 +1,0 @@
-vdfge,43,6B
-jla,32,5B
-fgrg,343,6C
-fgrg,343,6A
-gr,32,1A
