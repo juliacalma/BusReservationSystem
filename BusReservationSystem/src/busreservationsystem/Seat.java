@@ -8,6 +8,8 @@ package busreservationsystem;
  *
  * @author juliacalma
  */
+
+
 import java.io.Serializable;
 
 public class Seat implements Serializable {

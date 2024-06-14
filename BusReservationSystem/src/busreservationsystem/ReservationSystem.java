@@ -1,26 +1,27 @@
 package busreservationsystem;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
 
 /**
  * This class is in charge of controlling the system, handling user interactions, and coordinating operations involving seats,
  * reservations, and passengers.
  */
+
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.JOptionPane;
+import javax.swing.JTextArea;
+
 public class ReservationSystem {
     private Bus bus;
     private List<Reservation> reservations;
-    private Scanner scanner;
-    private Validator validator;
     private DBManager dbManager;
+    private Validator validator;
 
     public ReservationSystem(int numRows) {
         bus = new Bus(numRows);
         dbManager = new DBManager();
-        reservations = dbManager.loadReservations();
-        scanner = new Scanner(System.in);
         validator = new Validator();
+        reservations = dbManager.loadReservations();
         initializeBusSeats();
     }
 
@@ -30,8 +31,8 @@ public class ReservationSystem {
         }
     }
 
-    public void displayAvailableSeats() {
-        System.out.println("Available Seats:");
+    public void displayAvailableSeats(JTextArea seatArea) {
+        seatArea.append("Available Seats:\n");
 
         List<String> reservedSeatNumbers = new ArrayList<>();
         for (Reservation reservation : reservations) {
@@ -39,114 +40,54 @@ public class ReservationSystem {
         }
 
         for (int row = 1; row <= 25; row++) {
-            System.out.printf("%2d ", row);
+            seatArea.append(String.format("%2d ", row));
             for (char column : new char[]{'A', 'B', 'C', 'D'}) {
                 String seatNo = row + String.valueOf(column);
                 if (reservedSeatNumbers.contains(seatNo)) {
-                    System.out.print("[X]  ");
+                    seatArea.append("[X]  ");
                 } else {
-                    System.out.print("[ ]  ");
+                    seatArea.append("[ ]  ");
                 }
             }
-            System.out.println();
+            seatArea.append("\n");
         }
     }
 
-    public void reserveSeat() {
-        Passenger passenger = null;
+    public void reserveSeat(Passenger passenger, String seatNo) {
+        seatNo = seatNo.toUpperCase(); // Convert seat number to uppercase
 
-        while (true) {
-            if (passenger == null) {
-                passenger = validator.getPassengerInfo();
-            }
+        if (bus.isSeatReserved(seatNo)) {
+            JOptionPane.showMessageDialog(null, "Seat " + seatNo + " is already reserved.", "Error", JOptionPane.ERROR_MESSAGE);
+        } else {
+            bus.reserveSeatForPassenger(passenger, seatNo);
+            Reservation newReservation = new Reservation(passenger, seatNo);
+            reservations.add(newReservation);
+            dbManager.saveReservation(passenger, seatNo); // Save reservation to database
 
-            System.out.println("Enter Seat Number (e.g., 1A) or type 'exit' to cancel:");
-            String input = scanner.nextLine().trim();
-
-            if (input.equalsIgnoreCase("exit") || input.equalsIgnoreCase("quit")) {
-                System.out.println("Reservation process canceled.");
-                break;
-            }
-
-            try {
-                int row = Integer.parseInt(input.substring(0, input.length() - 1));
-                char column = Character.toUpperCase(input.charAt(input.length() - 1));
-
-                if (row < 1 || row > 25 || (column < 'A' || column > 'D')) {
-                    System.out.println("Invalid seat selection. Please enter a valid seat number (e.g., 1A).");
-                    continue;
-                }
-
-                String seatNo = row + String.valueOf(column);
-
-                if (bus.isSeatReserved(seatNo)) {
-                    System.out.println("Seat " + seatNo + " is already reserved.");
-                } else {
-                    bus.reserveSeatForPassenger(passenger, seatNo);
-                    Reservation newReservation = new Reservation(passenger, seatNo);
-                    reservations.add(newReservation);
-                    dbManager.saveReservation(passenger, seatNo); // Save reservation to database
-
-                    System.out.println("Seat " + seatNo + " reserved successfully.");
-                }
-
-                while (true) {
-                    System.out.println("Would you want to reserve another seat (yes/no):");
-                    String choice = scanner.nextLine().trim().toLowerCase();
-                    if (choice.equals("yes")) {
-                        break;
-                    } else if (choice.equals("no")) {
-                        System.out.println("Exiting reservation process.");
-                        return;
-                    } else {
-                        System.out.println("Invalid response. Please input 'yes' or 'no'.");
-                    }
-                }
-            } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
-                System.out.println("Invalid input. Please enter a valid seat number (e.g., 7A).");
-            }
+            JOptionPane.showMessageDialog(null, "Seat " + seatNo + " reserved successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 
-    public void cancelReservation() {
-        System.out.println("Enter Seat Number to cancel (e.g., 7A) or type 'exit' to cancel:");
-        String input = scanner.nextLine().trim().toUpperCase();
+    public void cancelReservation(String seatNo) {
+        seatNo = seatNo.toUpperCase(); // Convert seat number to uppercase
 
-        if (input.equalsIgnoreCase("exit") || input.equalsIgnoreCase("quit")) {
-            System.out.println("Cancellation process canceled.");
-            return;
+        if (bus.isSeatReserved(seatNo)) {
+            bus.cancelReservation(seatNo);
+            final String finalSeatNo = seatNo; // Make a final copy of seatNo
+            reservations.removeIf(reservation -> reservation.getSeatNo().equals(finalSeatNo));
+            dbManager.deleteReservation(seatNo); // Delete reservation from database
+            JOptionPane.showMessageDialog(null, "The reservation for seat " + seatNo + " has been successfully canceled.", "Success", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(null, "Seat " + seatNo + " is not currently reserved.", "Error", JOptionPane.ERROR_MESSAGE);
         }
-
-        try {
-            int row = Integer.parseInt(input.substring(0, input.length() - 1));
-            char column = Character.toUpperCase(input.charAt(input.length() - 1));
-            String seatNo = row + String.valueOf(column);
-
-            if (bus.isSeatReserved(seatNo)) {
-                bus.cancelReservation(seatNo);
-                reservations.removeIf(reservation -> reservation.getSeatNo().equals(seatNo));
-                dbManager.deleteReservation(seatNo); // Delete reservation from database
-                System.out.println("The reservation for seat " + seatNo + " has been successfully canceled.");
-            } else {
-                System.out.println("Seat " + seatNo + " is not currently reserved.");
-            }
-        } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
-            System.out.println("Invalid input. Please enter a valid seat number (e.g., 1A).");
-        }
-    }
-
-    private boolean isSeatReserved(String seatNo) {
-        for (Reservation reservation : reservations) {
-            if (reservation.getSeatNo().equals(seatNo)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public void exit() {
-        scanner.close();
         System.out.println("Exiting Bus Reservation System.");
         System.exit(0);
+    }
+
+    public Validator getValidator() {
+        return validator;
     }
 }

@@ -9,8 +9,6 @@ package busreservationsystem;
  * @author juliacalma
  */
 
-
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -49,26 +47,26 @@ public class DBManager {
         return this.conn;
     }
 
-    private static void createTableIfNotExists() throws SQLException {
-    String createTableSQL = "CREATE TABLE reservations ("
-            + "id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, "
-            + "fullName VARCHAR(100), "
-            + "contactNo VARCHAR(15), "
-            + "seatNo VARCHAR(5))";
+    private void createTableIfNotExists() throws SQLException {
+        String createReservationsTableSQL = "CREATE TABLE reservations ("
+                + "id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, "
+                + "fullName VARCHAR(100), "
+                + "contactNo VARCHAR(15), "
+                + "seatNo VARCHAR(5))";
 
-    try (Connection conn = DriverManager.getConnection(URL);
-         PreparedStatement pstmt = conn.prepareStatement(createTableSQL)) {
-        pstmt.execute();
-    } catch (SQLException e) {
-        if (e.getSQLState().equals("X0Y32")) {
-            // Table already exists, do nothing
-            LOGGER.info("Table 'reservations' already exists");
-        } else {
-            throw e;
+        try (PreparedStatement pstmtReservations = conn.prepareStatement(createReservationsTableSQL)) {
+            pstmtReservations.execute();
+            LOGGER.info("Reservations table created successfully");
+        } catch (SQLException e) {
+            if ("X0Y32".equals(e.getSQLState())) {
+                // Table already exists, log it
+                LOGGER.info("Table already exists");
+            } else {
+                LOGGER.log(Level.SEVERE, "Failed to create tables", e);
+                throw e;
+            }
         }
     }
-}
-
 
     // Establish connection
     public void establishConnection() {
